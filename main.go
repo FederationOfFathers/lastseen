@@ -2,14 +2,13 @@ package main
 
 import (
 	"flag"
-
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/mattn/go-sqlite3"
 )
 
 func main() {
+	defer seen.close()
 	flag.Parse()
 	initSqlite()
+	initMySQL()
 	mindSlack()
 	mindHTTP()
 }

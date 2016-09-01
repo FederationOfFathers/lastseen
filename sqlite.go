@@ -5,6 +5,8 @@ import (
 	"flag"
 	"log"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var dbPath = "./db.sqlite3"
@@ -16,13 +18,13 @@ type sqliteBackend struct {
 
 func (s *sqliteBackend) sawUser(userID string, now time.Time) {
 	if _, err := s.updateQuery.Exec(userID, now.String()); err != nil {
-		log.Println(err)
+		log.Println("Error updating sqlite", err)
 	}
 }
 
 func (s *sqliteBackend) open() {
 	if db, err := sql.Open("sqlite3", dbPath); err != nil {
-		log.Fatal(err)
+		log.Fatal("Error opening sqlite DB", err)
 	} else {
 		s.db = db
 	}
@@ -30,11 +32,11 @@ func (s *sqliteBackend) open() {
 
 func (s *sqliteBackend) prepare() {
 	if _, err := s.db.Exec("CREATE TABLE IF NOT EXISTS `seen` (`id` STRING PRIMARY KEY,`when` TEXT);"); err != nil {
-		log.Fatal(err)
+		log.Fatal("Error preparing sqlite database", err)
 	}
 
 	if stmt, err := s.db.Prepare("INSERT OR REPLACE INTO `seen` (`id`,`when`) VALUES(?,?)"); err != nil {
-		log.Fatal(err)
+		log.Fatal("Error preparing sqlite statement", err)
 	} else {
 		s.updateQuery = stmt
 	}
@@ -42,7 +44,7 @@ func (s *sqliteBackend) prepare() {
 
 func (s *sqliteBackend) load() {
 	if rows, err := s.db.Query("SELECT * FROM `seen`"); err != nil {
-		log.Fatal(err)
+		log.Fatal("Error Loading sqlite data", err)
 	} else {
 		for rows.Next() {
 			var id string
@@ -61,6 +63,10 @@ func (s *sqliteBackend) load() {
 	for u, t := range seen {
 		log.Println("Loaded", u, "last seen time", t)
 	}
+}
+
+func (s *sqliteBackend) close() {
+	s.db.Close()
 }
 
 func init() {

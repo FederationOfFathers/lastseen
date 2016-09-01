@@ -14,6 +14,7 @@ var (
 
 type seenStore interface {
 	sawUser(string, time.Time)
+	close()
 }
 
 type seenMap map[string]time.Time
@@ -21,6 +22,14 @@ type seenMap map[string]time.Time
 func (s seenMap) register(backend seenStore) {
 	backendLock.Lock()
 	backends = append(backends, backend)
+	backendLock.Unlock()
+}
+
+func (s seenMap) close() {
+	backendLock.Lock()
+	for _, backend := range backends {
+		backend.close()
+	}
 	backendLock.Unlock()
 }
 
