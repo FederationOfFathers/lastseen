@@ -9,6 +9,6 @@ func main() {
 	flag.Parse()
 	initSqlite()
 	initMySQL()
-	mindSlack()
 	mindHTTP()
+	mindSlack()
 }
